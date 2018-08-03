@@ -1,4 +1,16 @@
 [package]
 name = "ucs2"
 version = "0.1.0"
-authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>"]
+authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>", "Fredrik Aleksander"]
+description = "UCS-2 decoding and encoding functions"
+repository = "https://github.com/GabrielMajeri/ucs2-rs"
+readme = "README.md"
+keywords = ["ucs2", "no-std", "encoding"]
+categories = ["encoding", "no-std"]
+license = "MPL-2.0"
+
+[badges]
+is-it-maintained-issue-resolution = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
+is-it-maintained-open-issues = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
+
+maintenance = { status = "passively-maintained" }
