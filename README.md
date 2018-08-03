@@ -1,6 +1,8 @@
 # ucs2-rs
 
 [![UCS2 crate on crates.io](https://img.shields.io/crates/v/ucs2.svg)](https://crates.io/crates/ucs2)
+[![UCS2 docs on docs.rs](https://docs.rs/ucs2/badge.svg)](https://docs.rs/ucs2)
+![Licensed under MPL-2.0](https://img.shields.io/github/license/GabrielMajeri/ucs2-rs.svg)
 
 UCS-2 handling for Rust.
 
