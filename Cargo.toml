@@ -1,0 +1,4 @@
+[package]
+name = "ucs2"
+version = "0.1.0"
+authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>"]
