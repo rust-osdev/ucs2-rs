@@ -1,5 +1,7 @@
 # ucs2-rs
 
+[![UCS2 crate on crates.io](https://img.shields.io/crates/v/ucs2.svg)](https://crates.io/crates/ucs2)
+
 UCS-2 handling for Rust.
 
 Note that UCS-2 is the predecessor of [UTF-16](https://en.wikipedia.org/wiki/UTF-16).
