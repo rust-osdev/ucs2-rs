@@ -1,6 +1,6 @@
 [package]
 name = "ucs2"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>", "Fredrik Aleksander"]
 description = "UCS-2 decoding and encoding functions"
 repository = "https://github.com/GabrielMajeri/ucs2-rs"
