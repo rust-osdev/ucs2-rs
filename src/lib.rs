@@ -2,16 +2,12 @@
 
 #![no_std]
 
-#[deny(missing_docs, unsafe_code)]
+#[deny(missing_docs)]
 #[cfg_attr(feature = "cargo-clippy", deny(clippy))]
 
 /// Possible errors returned by the API.
 #[derive(Debug, Copy, Clone)]
 pub enum Error {
-    /// Input contains an invalid character.
-    InvalidData,
-    /// Input contained the start of a multi-byte character but its tail was missing.
-    BufferUnderflow,
     /// Not enough space left in the output buffer.
     BufferOverflow,
     /// Input contained a character which cannot be represented in UCS-2.
@@ -60,29 +56,25 @@ where
             i += 1;
         } else if bytes[i] & 0b1110_0000 == 0b1100_0000 {
             // 2 byte codepoint
-            if i + 1 == len {
-                // Buffer underflow
-                return Err(Error::BufferUnderflow);
+            if i + 1 >= len {
+                // safe: len is the length of bytes,
+                // and bytes is a direct view into the
+                // buffer of input, which in order to be a valid
+                // utf-8 string _must_ contain `i + 1`.
+                unsafe { core::hint::unreachable_unchecked() }
             }
-            if bytes[i + 1] & 0b1100_0000 != 0b1000_0000 {
-                // Invalid data
-                return Err(Error::InvalidData);
-            }
+
             let a = u16::from(bytes[i] & 0b0001_1111);
             let b = u16::from(bytes[i + 1] & 0b0011_1111);
             ch = a << 6 | b;
             i += 2;
         } else if bytes[i] & 0b1111_0000 == 0b1110_0000 {
             // 3 byte codepoint
-            if i + 2 >= len {
-                return Err(Error::BufferUnderflow);
+            if i + 2 >= len || i + 1 >= len {
+                // safe: impossible utf-8 string.
+                unsafe { core::hint::unreachable_unchecked() }
             }
-            if bytes[i + 1] & 0b1100_0000 != 0b1000_0000
-                || bytes[i + 2] & 0b1100_0000 != 0b1000_0000
-            {
-                // Invalid data
-                return Err(Error::InvalidData);
-            }
+
             let a = u16::from(bytes[i] & 0b0000_1111);
             let b = u16::from(bytes[i + 1] & 0b0011_1111);
             let c = u16::from(bytes[i + 2] & 0b0011_1111);
@@ -91,7 +83,8 @@ where
         } else if bytes[i] & 0b1111_0000 == 0b1111_0000 {
             return Err(Error::MultiByte); // UTF-16
         } else {
-            return Err(Error::InvalidData);
+            // safe: impossible utf-8 string.
+            unsafe { core::hint::unreachable_unchecked() }
         }
         output(ch)?;
     }
