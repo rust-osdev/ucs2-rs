@@ -10,6 +10,9 @@ categories = ["encoding", "no-std"]
 license = "MPL-2.0"
 edition = "2018"
 
+[dependencies]
+bit_field = "0.10"
+
 [badges]
 is-it-maintained-issue-resolution = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
 is-it-maintained-open-issues = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
