@@ -148,4 +148,17 @@ mod tests {
 
         assert_eq!(buffer[..], [0x0151, 0x044D, 0x254B]);
     }
+
+    #[test]
+    fn decoding() {
+        let input = "$¢ह한";
+        let mut u16_buffer = [0u16; 4];
+        let result = encode(input, &mut u16_buffer);
+        assert_eq!(result.unwrap(), 4);
+
+        let mut u8_buffer = [0u8; 9];
+        let result = decode(&u16_buffer, &mut u8_buffer);
+        assert_eq!(result.unwrap(), 9);
+        assert_eq!(core::str::from_utf8(&u8_buffer[0..9]), Ok("$¢ह한"));
+    }
 }
