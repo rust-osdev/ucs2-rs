@@ -8,6 +8,7 @@ readme = "README.md"
 keywords = ["ucs2", "no-std", "encoding"]
 categories = ["encoding", "no-std"]
 license = "MPL-2.0"
+edition = "2018"
 
 [badges]
 is-it-maintained-issue-resolution = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
