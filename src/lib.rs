@@ -92,6 +92,10 @@ where
     Ok(())
 }
 
+/// Decode an input UCS-2 string into a UTF-8 string.
+///
+/// The returned `usize` represents the length of the returned buffer,
+/// in bytes.
 pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
     let buffer_size = output.len();
     let mut i = 0;
