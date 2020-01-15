@@ -4,6 +4,7 @@
 
 #[deny(missing_docs)]
 #[deny(clippy::all)]
+use bit_field::BitField;
 
 /// Possible errors returned by the API.
 #[derive(Debug, Copy, Clone)]
@@ -91,6 +92,52 @@ where
     Ok(())
 }
 
+/// Decode an input UCS-2 string into a UTF-8 string.
+///
+/// The returned `usize` represents the length of the returned buffer,
+/// in bytes.
+pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
+    let buffer_size = output.len();
+    let mut i = 0;
+
+    for &ch in input.iter() {
+        /*
+         * We need to find how many bytes of UTF-8 this UCS-2 code-point needs. Because UCS-2 can only encode
+         * the Basic Multilingual Plane, a maximum of three bytes are needed.
+         */
+        if (0x0000..0x0080).contains(&ch) {
+            // Can be encoded in a single byte
+            if i >= buffer_size {
+                return Err(Error::BufferOverflow);
+            }
+
+            output[i] = ch as u8;
+            i += 1;
+        } else if (0x0080..0x0800).contains(&ch) {
+            // Can be encoded as two bytes
+            if (i + 1) >= buffer_size {
+                return Err(Error::BufferOverflow);
+            }
+
+            output[i] = 0b11000000 + ch.get_bits(6..11) as u8;
+            output[i + 1] = 0b10000000 + ch.get_bits(0..6) as u8;
+            i += 2;
+        } else {
+            // Can be encoded as three bytes
+            if (i + 2) >= buffer_size {
+                return Err(Error::BufferOverflow);
+            }
+
+            output[i] = 0b11100000 + ch.get_bits(12..16) as u8;
+            output[i + 1] = 0b10000000 + ch.get_bits(6..12) as u8;
+            output[i + 2] = 0b10000000 + ch.get_bits(0..6) as u8;
+            i += 3;
+        }
+    }
+
+    Ok(i)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -104,5 +151,18 @@ mod tests {
         assert_eq!(result.unwrap(), 3);
 
         assert_eq!(buffer[..], [0x0151, 0x044D, 0x254B]);
+    }
+
+    #[test]
+    fn decoding() {
+        let input = "$¢ह한";
+        let mut u16_buffer = [0u16; 4];
+        let result = encode(input, &mut u16_buffer);
+        assert_eq!(result.unwrap(), 4);
+
+        let mut u8_buffer = [0u8; 9];
+        let result = decode(&u16_buffer, &mut u8_buffer);
+        assert_eq!(result.unwrap(), 9);
+        assert_eq!(core::str::from_utf8(&u8_buffer[0..9]), Ok("$¢ह한"));
     }
 }
