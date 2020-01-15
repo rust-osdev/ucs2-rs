@@ -2,8 +2,9 @@
 
 #![no_std]
 
-#[deny(missing_docs)]
-#[deny(clippy::all)]
+#![deny(missing_docs)]
+#![deny(clippy::all)]
+
 use bit_field::BitField;
 
 /// Possible errors returned by the API.
@@ -119,8 +120,8 @@ pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
                 return Err(Error::BufferOverflow);
             }
 
-            output[i] = 0b11000000 + ch.get_bits(6..11) as u8;
-            output[i + 1] = 0b10000000 + ch.get_bits(0..6) as u8;
+            output[i] = 0b1100_0000 + ch.get_bits(6..11) as u8;
+            output[i + 1] = 0b1000_0000 + ch.get_bits(0..6) as u8;
             i += 2;
         } else {
             // Can be encoded as three bytes
@@ -128,9 +129,9 @@ pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
                 return Err(Error::BufferOverflow);
             }
 
-            output[i] = 0b11100000 + ch.get_bits(12..16) as u8;
-            output[i + 1] = 0b10000000 + ch.get_bits(6..12) as u8;
-            output[i + 2] = 0b10000000 + ch.get_bits(0..6) as u8;
+            output[i] = 0b1110_0000 + ch.get_bits(12..16) as u8;
+            output[i + 1] = 0b1000_0000 + ch.get_bits(6..12) as u8;
+            output[i + 2] = 0b1000_0000 + ch.get_bits(0..6) as u8;
             i += 3;
         }
     }
