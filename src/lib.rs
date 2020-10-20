@@ -92,22 +92,12 @@ where
     Ok(())
 }
 
-/// Describes a UCS-2 character as UTF-8 bytes.
-pub enum Utf8Bytes {
-    /// The first 128 characters that fit into a single byte.
-    Single(u8),
-    /// A character that takes two bytes.
-    Double(u8, u8),
-    /// A character that takes three bytes.
-    Triple(u8, u8, u8),
-}
-
 /// Decode UCS-2 string to UTF-8 with a custom callback function.
 ///
 /// `output` is a function which receives every decoded character.
 pub fn decode_with<F>(input: &[u16], mut output: F) -> Result<usize>
 where
-    F: FnMut(Utf8Bytes) -> Result<()>,
+    F: FnMut(&[u8]) -> Result<()>,
 {
     let mut written = 0;
 
@@ -117,14 +107,14 @@ where
          * the Basic Multilingual Plane, a maximum of three bytes are needed.
          */
         if (0x000..0x0080).contains(ch) {
-            output(Utf8Bytes::Single(*ch as u8))?;
+            output(&[*ch as u8])?;
 
             written += 1;
         } else if (0x0080..0x0800).contains(ch) {
             let first = 0b1100_0000 + ch.get_bits(6..11) as u8;
             let last = 0b1000_0000 + ch.get_bits(0..6) as u8;
 
-            output(Utf8Bytes::Double(first, last))?;
+            output(&[first, last])?;
 
             written += 2;
         } else {
@@ -132,7 +122,7 @@ where
             let mid = 0b1000_0000 + ch.get_bits(6..12) as u8;
             let last = 0b1000_0000 + ch.get_bits(0..6) as u8;
 
-            output(Utf8Bytes::Triple(first, mid, last))?;
+            output(&[first, mid, last])?;
 
             written += 3;
         }
@@ -150,39 +140,38 @@ pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
     let mut i = 0;
 
     decode_with(input, |bytes| {
-        match bytes {
-            Utf8Bytes::Single(a) => {
-                // Can be encoded in a single byte
-                if i >= buffer_size {
-                    return Err(Error::BufferOverflow);
-                }
-
-                output[i] = a;
-                i += 1;
+        if bytes.len() == 1 {
+            // Can be encoded in a single byte
+            if i >= buffer_size {
+                return Err(Error::BufferOverflow);
             }
-            Utf8Bytes::Double(a, b) => {
-                // Can be encoded as two bytes
-                if (i + 1) >= buffer_size {
-                    return Err(Error::BufferOverflow);
-                }
 
-                output[i] = a;
-                output[i + 1] = b;
+            output[i] = bytes[0];
 
-                i += 2;
+            i += 1;
+        } else if bytes.len() == 2 {
+            // Can be encoded two bytes
+            if i + 1 >= buffer_size {
+                return Err(Error::BufferOverflow);
             }
-            Utf8Bytes::Triple(a, b, c) => {
-                // Can be encoded as three bytes
-                if (i + 2) >= buffer_size {
-                    return Err(Error::BufferOverflow);
-                }
 
-                output[i] = a;
-                output[i + 1] = b;
-                output[i + 2] = c;
+            output[i] = bytes[0];
+            output[i + 1] = bytes[1];
 
-                i += 3;
+            i += 2;
+        } else if bytes.len() == 3 {
+            // Can be encoded three bytes
+            if i + 2 >= buffer_size {
+                return Err(Error::BufferOverflow);
             }
+
+            output[i] = bytes[0];
+            output[i + 1] = bytes[1];
+            output[i + 2] = bytes[2];
+
+            i += 3;
+        } else {
+            unreachable!("More than three bytes per UCS-2 character.");
         }
 
         Ok(())
@@ -213,6 +202,30 @@ mod tests {
 
         let mut u8_buffer = [0u8; 9];
         let result = decode(&u16_buffer, &mut u8_buffer);
+        assert_eq!(result.unwrap(), 9);
+        assert_eq!(core::str::from_utf8(&u8_buffer[0..9]), Ok("$¢ह한"));
+    }
+
+    #[test]
+    fn decoding_with() {
+        let input = "$¢ह한";
+
+        let mut u16_buffer = [0u16; 4];
+        let result = encode(input, &mut u16_buffer);
+        assert_eq!(result.unwrap(), 4);
+
+        let mut u8_buffer = [0u8; 9];
+        let mut pos = 0;
+
+        let result = decode_with(&u16_buffer, |bytes| {
+            for byte in bytes.into_iter() {
+                u8_buffer[pos] = *byte;
+                pos += 1;
+            }
+
+            Ok(())
+        });
+
         assert_eq!(result.unwrap(), 9);
         assert_eq!(core::str::from_utf8(&u8_buffer[0..9]), Ok("$¢ह한"));
     }
