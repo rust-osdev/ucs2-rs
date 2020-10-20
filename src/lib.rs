@@ -92,6 +92,55 @@ where
     Ok(())
 }
 
+/// Describes a UCS-2 character as UTF-8 bytes.
+pub enum Utf8Bytes {
+    /// The first 128 characters that fit into a single byte.
+    Single(u8),
+    /// A character that takes two bytes.
+    Double(u8, u8),
+    /// A character that takes three bytes.
+    Triple(u8, u8, u8),
+}
+
+/// Decode UCS-2 string to UTF-8 with a custom callback function.
+///
+/// `output` is a function which receives every decoded character.
+pub fn decode_with<F>(input: &[u16], mut output: F) -> Result<usize>
+where
+    F: FnMut(Utf8Bytes) -> Result<()>,
+{
+    let mut written = 0;
+
+    for ch in input.iter() {
+        /*
+         * We need to find how many bytes of UTF-8 this UCS-2 code-point needs. Because UCS-2 can only encode
+         * the Basic Multilingual Plane, a maximum of three bytes are needed.
+         */
+        if (0x000..0x0080).contains(ch) {
+            output(Utf8Bytes::Single(*ch as u8))?;
+
+            written += 1;
+        } else if (0x0080..0x0800).contains(ch) {
+            let first = 0b1100_0000 + ch.get_bits(6..11) as u8;
+            let last = 0b1000_0000 + ch.get_bits(0..6) as u8;
+
+            output(Utf8Bytes::Double(first, last))?;
+
+            written += 2;
+        } else {
+            let first = 0b1110_0000 + ch.get_bits(12..16) as u8;
+            let mid = 0b1000_0000 + ch.get_bits(6..12) as u8;
+            let last = 0b1000_0000 + ch.get_bits(0..6) as u8;
+
+            output(Utf8Bytes::Triple(first, mid, last))?;
+
+            written += 3;
+        }
+    }
+
+    Ok(written)
+}
+
 /// Decode an input UCS-2 string into a UTF-8 string.
 ///
 /// The returned `usize` represents the length of the returned buffer,
@@ -100,42 +149,44 @@ pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
     let buffer_size = output.len();
     let mut i = 0;
 
-    for &ch in input.iter() {
-        /*
-         * We need to find how many bytes of UTF-8 this UCS-2 code-point needs. Because UCS-2 can only encode
-         * the Basic Multilingual Plane, a maximum of three bytes are needed.
-         */
-        if (0x0000..0x0080).contains(&ch) {
-            // Can be encoded in a single byte
-            if i >= buffer_size {
-                return Err(Error::BufferOverflow);
-            }
+    decode_with(input, |bytes| {
+        match bytes {
+            Utf8Bytes::Single(a) => {
+                // Can be encoded in a single byte
+                if i >= buffer_size {
+                    return Err(Error::BufferOverflow);
+                }
 
-            output[i] = ch as u8;
-            i += 1;
-        } else if (0x0080..0x0800).contains(&ch) {
-            // Can be encoded as two bytes
-            if (i + 1) >= buffer_size {
-                return Err(Error::BufferOverflow);
+                output[i] = a;
+                i += 1;
             }
+            Utf8Bytes::Double(a, b) => {
+                // Can be encoded as two bytes
+                if (i + 1) >= buffer_size {
+                    return Err(Error::BufferOverflow);
+                }
 
-            output[i] = 0b1100_0000 + ch.get_bits(6..11) as u8;
-            output[i + 1] = 0b1000_0000 + ch.get_bits(0..6) as u8;
-            i += 2;
-        } else {
-            // Can be encoded as three bytes
-            if (i + 2) >= buffer_size {
-                return Err(Error::BufferOverflow);
+                output[i] = a;
+                output[i + 1] = b;
+
+                i += 2;
             }
+            Utf8Bytes::Triple(a, b, c) => {
+                // Can be encoded as three bytes
+                if (i + 2) >= buffer_size {
+                    return Err(Error::BufferOverflow);
+                }
 
-            output[i] = 0b1110_0000 + ch.get_bits(12..16) as u8;
-            output[i + 1] = 0b1000_0000 + ch.get_bits(6..12) as u8;
-            output[i + 2] = 0b1000_0000 + ch.get_bits(0..6) as u8;
-            i += 3;
+                output[i] = a;
+                output[i + 1] = b;
+                output[i + 2] = c;
+
+                i += 3;
+            }
         }
-    }
 
-    Ok(i)
+        Ok(())
+    })
 }
 
 #[cfg(test)]
