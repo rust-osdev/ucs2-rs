@@ -95,6 +95,8 @@ where
 /// Decode UCS-2 string to UTF-8 with a custom callback function.
 ///
 /// `output` is a function which receives every decoded character.
+/// Due to the nature of UCS-2, the function can receive an UTF-8 character
+/// of up to three bytes, for every input character.
 pub fn decode_with<F>(input: &[u16], mut output: F) -> Result<usize>
 where
     F: FnMut(&[u8]) -> Result<()>,
@@ -134,7 +136,8 @@ where
 /// Decode an input UCS-2 string into a UTF-8 string.
 ///
 /// The returned `usize` represents the length of the returned buffer,
-/// in bytes.
+/// in bytes. Due to the nature of UCS-2, the output buffer could end up with
+/// three bytes for every character in the input buffer.
 pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
     let buffer_size = output.len();
     let mut i = 0;
