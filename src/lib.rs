@@ -5,14 +5,26 @@
 #![deny(clippy::all)]
 
 use bit_field::BitField;
+use core::fmt::{self, Display, Formatter};
 
 /// Possible errors returned by the API.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Error {
     /// Not enough space left in the output buffer.
     BufferOverflow,
     /// Input contained a character which cannot be represented in UCS-2.
     MultiByte,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::BufferOverflow => f.write_str("output buffer is too small"),
+            Self::MultiByte => {
+                f.write_str("input contains a character which cannot be represented in UCS-2")
+            }
+        }
+    }
 }
 
 type Result<T> = core::result::Result<T, Error>;
