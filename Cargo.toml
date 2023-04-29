@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["ucs2", "no-std", "encoding"]
 categories = ["encoding", "no-std"]
 license = "MPL-2.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 bit_field = "0.10"
