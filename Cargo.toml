@@ -4,7 +4,6 @@ version = "0.3.2"
 authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>", "Fredrik Aleksander", "Isaac Woods"]
 description = "UCS-2 decoding and encoding functions"
 repository = "https://github.com/rust-osdev/ucs2-rs"
-readme = "README.md"
 keywords = ["ucs2", "no-std", "encoding"]
 categories = ["encoding", "no-std"]
 license = "MPL-2.0"
@@ -14,7 +13,4 @@ edition = "2021"
 bit_field = "0.10"
 
 [badges]
-is-it-maintained-issue-resolution = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
-is-it-maintained-open-issues = { repository = "https://github.com/GabrielMajeri/ucs2-rs" }
-
 maintenance = { status = "passively-maintained" }
