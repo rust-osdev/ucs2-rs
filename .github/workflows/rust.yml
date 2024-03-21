@@ -11,6 +11,19 @@ on:
     - cron: '0 0 * * 4'
 
 jobs:
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    env:
+      rust_ver: "1.56"
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - run: rustup toolchain install $rust_ver --profile minimal --no-self-update
+      - run: rustup default $rust_version
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test
+
   check:
     name: Check
     runs-on: ubuntu-latest

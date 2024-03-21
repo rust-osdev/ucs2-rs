@@ -8,6 +8,7 @@ keywords = ["ucs2", "no-std", "encoding"]
 categories = ["encoding", "no-std"]
 license = "MPL-2.0"
 edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
 bit_field = "0.10"
