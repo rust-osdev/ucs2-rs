@@ -29,6 +29,66 @@ impl Display for Error {
 
 type Result<T> = core::result::Result<T, Error>;
 
+/// Value returned by `ucs2_from_utf8_at_offset`.
+struct Ucs2CharFromUtf8 {
+    /// UCS-2 character.
+    val: u16,
+    /// Number of bytes needed to encode the character in UTF-8.
+    num_bytes: u8,
+}
+
+/// Get a UCS-2 character from a UTF-8 byte slice at the given offset.
+///
+/// # Safety
+///
+/// The input `bytes` must be valid UTF-8.
+const unsafe fn ucs2_from_utf8_at_offset(bytes: &[u8], offset: usize) -> Result<Ucs2CharFromUtf8> {
+    let len = bytes.len();
+    let ch;
+    let ch_len;
+
+    if bytes[offset] & 0b1000_0000 == 0b0000_0000 {
+        ch = bytes[offset] as u16;
+        ch_len = 1;
+    } else if bytes[offset] & 0b1110_0000 == 0b1100_0000 {
+        // 2 byte codepoint
+        if offset + 1 >= len {
+            // safe: len is the length of bytes,
+            // and bytes is a direct view into the
+            // buffer of input, which in order to be a valid
+            // utf-8 string _must_ contain `i + 1`.
+            unsafe { core::hint::unreachable_unchecked() }
+        }
+
+        let a = (bytes[offset] & 0b0001_1111) as u16;
+        let b = (bytes[offset + 1] & 0b0011_1111) as u16;
+        ch = a << 6 | b;
+        ch_len = 2;
+    } else if bytes[offset] & 0b1111_0000 == 0b1110_0000 {
+        // 3 byte codepoint
+        if offset + 2 >= len || offset + 1 >= len {
+            // safe: impossible utf-8 string.
+            unsafe { core::hint::unreachable_unchecked() }
+        }
+
+        let a = (bytes[offset] & 0b0000_1111) as u16;
+        let b = (bytes[offset + 1] & 0b0011_1111) as u16;
+        let c = (bytes[offset + 2] & 0b0011_1111) as u16;
+        ch = a << 12 | b << 6 | c;
+        ch_len = 3;
+    } else if bytes[offset] & 0b1111_0000 == 0b1111_0000 {
+        return Err(Error::MultiByte); // UTF-16
+    } else {
+        // safe: impossible utf-8 string.
+        unsafe { core::hint::unreachable_unchecked() }
+    }
+
+    Ok(Ucs2CharFromUtf8 {
+        val: ch,
+        num_bytes: ch_len,
+    })
+}
+
 /// Encodes an input UTF-8 string into a UCS-2 string.
 ///
 /// The returned `usize` represents the length of the returned buffer,
@@ -62,44 +122,10 @@ where
     let mut i = 0;
 
     while i < len {
-        let ch;
-
-        if bytes[i] & 0b1000_0000 == 0b0000_0000 {
-            ch = u16::from(bytes[i]);
-            i += 1;
-        } else if bytes[i] & 0b1110_0000 == 0b1100_0000 {
-            // 2 byte codepoint
-            if i + 1 >= len {
-                // safe: len is the length of bytes,
-                // and bytes is a direct view into the
-                // buffer of input, which in order to be a valid
-                // utf-8 string _must_ contain `i + 1`.
-                unsafe { core::hint::unreachable_unchecked() }
-            }
-
-            let a = u16::from(bytes[i] & 0b0001_1111);
-            let b = u16::from(bytes[i + 1] & 0b0011_1111);
-            ch = a << 6 | b;
-            i += 2;
-        } else if bytes[i] & 0b1111_0000 == 0b1110_0000 {
-            // 3 byte codepoint
-            if i + 2 >= len || i + 1 >= len {
-                // safe: impossible utf-8 string.
-                unsafe { core::hint::unreachable_unchecked() }
-            }
-
-            let a = u16::from(bytes[i] & 0b0000_1111);
-            let b = u16::from(bytes[i + 1] & 0b0011_1111);
-            let c = u16::from(bytes[i + 2] & 0b0011_1111);
-            ch = a << 12 | b << 6 | c;
-            i += 3;
-        } else if bytes[i] & 0b1111_0000 == 0b1111_0000 {
-            return Err(Error::MultiByte); // UTF-16
-        } else {
-            // safe: impossible utf-8 string.
-            unsafe { core::hint::unreachable_unchecked() }
-        }
-        output(ch)?;
+        // SAFETY: `bytes` is valid UTF-8.
+        let ch = unsafe { ucs2_from_utf8_at_offset(bytes, i) }?;
+        i += usize::from(ch.num_bytes);
+        output(ch.val)?;
     }
     Ok(())
 }
