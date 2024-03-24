@@ -4,6 +4,13 @@
 #![deny(missing_docs)]
 #![deny(clippy::all)]
 
+mod macros;
+
+/// These need to be public for the `ucs2_cstr!` macro, but are not
+/// intended to be called directly.
+#[doc(hidden)]
+pub use macros::{str_num_ucs2_chars, str_to_ucs2};
+
 use bit_field::BitField;
 use core::fmt::{self, Display, Formatter};
 
