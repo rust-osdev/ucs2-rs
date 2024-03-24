@@ -1,4 +1,4 @@
-use ucs2::{decode, decode_with, encode, Error};
+use ucs2::{decode, decode_with, encode, ucs2_cstr, Error};
 
 #[test]
 fn encoding() {
@@ -63,4 +63,13 @@ fn decoding_with() {
 
     assert_eq!(result.unwrap(), 9);
     assert_eq!(core::str::from_utf8(&u8_buffer[0..9]), Ok("$¢ह한"));
+}
+
+#[test]
+fn test_macro() {
+    const S1: [u16; 4] = ucs2_cstr!("abc");
+    const S2: &[u16] = &ucs2_cstr!("$¢ह한");
+
+    assert_eq!(S1, [97, 98, 99, 0]);
+    assert_eq!(S2, [36, 162, 2361, 54620, 0]);
 }
