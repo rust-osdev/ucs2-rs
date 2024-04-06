@@ -1,6 +1,6 @@
 [package]
 name = "ucs2"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Gabriel Majeri <gabriel.majeri6@gmail.com>", "Fredrik Aleksander", "Isaac Woods"]
 description = "UCS-2 decoding and encoding functions"
 repository = "https://github.com/rust-osdev/ucs2-rs"

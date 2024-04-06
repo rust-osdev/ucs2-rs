@@ -1,4 +1,4 @@
-# Unreleased
+# 0.3.3 (2024-04-06)
 
 * Impl `Display`, `Eq`, `PartialEq`, `Ord`, `PartialOrd`, and `Hash` for
   the `Error` type.
