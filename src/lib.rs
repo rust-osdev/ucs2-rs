@@ -4,4 +4,8 @@
 #![deny(missing_docs)]
 #![deny(clippy::all)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 pub mod encoding;
+pub mod types;
