@@ -8,6 +8,7 @@ use {alloc::vec::Vec, core::mem::ManuallyDrop};
 /// Polyfill for the unstable `MaybeUninit::slice_assume_init_ref` function.
 ///
 /// See <https://github.com/rust-lang/rust/issues/63569>.
+#[allow(clippy::missing_safety_doc)]
 pub const unsafe fn maybe_uninit_slice_assume_init_ref<T>(s: &[MaybeUninit<T>]) -> &[T] {
     unsafe { &*(s as *const [MaybeUninit<T>] as *const [T]) }
 }

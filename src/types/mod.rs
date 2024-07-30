@@ -1,17 +1,24 @@
-//! TODO.
+//! Rusty-types to work with UCS-2 strings and for convenient interoperability
+//! with Rust string literals (`&str`) and Rust strings (`String`).
 
-pub(self) mod chars;
+mod chars;
 mod cstr16;
 mod cstr8;
+#[cfg(feature = "alloc")]
+mod cstring16;
 mod macros;
 mod unaligned_slice;
 
 pub use crate::cstr16;
 pub use crate::cstr8;
+pub use chars::*;
 use core::fmt;
 use core::fmt::{Display, Formatter};
 pub use cstr16::*;
 pub use cstr8::*;
+#[cfg(feature = "alloc")]
+pub use cstring16::*;
+pub use unaligned_slice::*;
 
 /// Errors which can occur during checked `[uN]` -> `CStrN` conversions
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

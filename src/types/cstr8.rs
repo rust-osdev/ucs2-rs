@@ -1,6 +1,3 @@
-//! Rusty-types to work with UCS-2 strings and for convenient interoperability
-//! with Rust string literals (`&str`) and Rust strings (`String`).
-
 use crate::types::chars::{Char8, NUL_8};
 use crate::types::{EqStrUntilNul, FromSliceWithNulError};
 use core::borrow::Borrow;

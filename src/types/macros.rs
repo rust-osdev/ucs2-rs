@@ -21,7 +21,7 @@
 /// assert_eq!(cstr8!(""), EMPTY);
 /// ```
 ///
-/// [`&CStr8`]: crate::CStr8
+/// [`&CStr8`]: crate::types::CStr8
 #[macro_export]
 macro_rules! cstr8 {
     () => {{
@@ -65,7 +65,7 @@ macro_rules! cstr8 {
 /// assert_eq!(cstr16!(""), EMPTY);
 /// ```
 ///
-/// [`&CStr16`]: crate::CStr16
+/// [`&CStr16`]: crate::types::CStr16
 #[macro_export]
 macro_rules! cstr16 {
     () => {{

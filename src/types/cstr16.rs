@@ -1,6 +1,8 @@
 use crate::polyfill::maybe_uninit_slice_assume_init_ref;
 use crate::types::chars::{Char16, NUL_16};
 use crate::types::unaligned_slice::UnalignedSlice;
+#[cfg(feature = "alloc")]
+use crate::types::CString16;
 use crate::types::{EqStrUntilNul, FromSliceWithNulError, FromStrWithBufError};
 use core::borrow::Borrow;
 use core::fmt::{Display, Formatter};
