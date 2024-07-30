@@ -1,13 +1,13 @@
 use super::chars::{Char16, NUL_16};
 use crate::polyfill::vec_into_raw_parts;
+use crate::types::unaligned_slice::UnalignedSlice;
+use crate::types::{CStr16, EqStrUntilNul, FromSliceWithNulError};
 use alloc::borrow::{Borrow, ToOwned};
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::fmt::{self, Display, Formatter};
 use core::ops;
-use crate::types::{CStr16, EqStrUntilNul, FromSliceWithNulError};
-use crate::types::unaligned_slice::UnalignedSlice;
 
 /// Error returned by [`CString16::try_from::<&str>`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -291,15 +291,9 @@ mod tests {
     /// Test `CString16 == &CStr16` and `&CStr16 == CString16`.
     #[test]
     fn test_cstring16_cstr16_eq() {
-        assert_eq!(
-            cstr16!("abc"),
-            CString16::try_from("abc").unwrap()
-        );
+        assert_eq!(cstr16!("abc"), CString16::try_from("abc").unwrap());
 
-        assert_eq!(
-            CString16::try_from("abc").unwrap(),
-            cstr16!("abc")
-        );
+        assert_eq!(CString16::try_from("abc").unwrap(), cstr16!("abc"));
     }
 
     /// Tests the trait implementation of trait [`EqStrUntilNul]` for [`CString16`].
