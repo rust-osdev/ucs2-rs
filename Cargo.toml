@@ -13,5 +13,3 @@ rust-version = "1.56"
 [dependencies]
 bit_field = "0.10"
 
-[badges]
-maintenance = { status = "passively-maintained" }
