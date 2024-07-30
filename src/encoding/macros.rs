@@ -82,13 +82,13 @@ macro_rules! ucs2_cstr {
         // Use `const` values here to force errors to happen at compile
         // time.
 
-        const NUM_CHARS: usize = match $crate::str_num_ucs2_chars($s) {
+        const NUM_CHARS: usize = match $crate::encoding::str_num_ucs2_chars($s) {
             // Add one for the null char.
             Ok(num) => num + 1,
             Err(_) => panic!("input contains a character which cannot be represented in UCS-2"),
         };
 
-        const VAL: [u16; NUM_CHARS] = match $crate::str_to_ucs2($s) {
+        const VAL: [u16; NUM_CHARS] = match $crate::encoding::str_to_ucs2($s) {
             Ok(val) => val,
             // The string was already checked by `str_num_ucs2_chars`,
             // so this error is unreachable.

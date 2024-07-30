@@ -1,4 +1,4 @@
-use ucs2::{decode, decode_with, encode, ucs2_cstr, Error};
+use ucs2::encoding::{decode, decode_with, encode, ucs2_cstr, Error};
 
 #[test]
 fn encoding() {

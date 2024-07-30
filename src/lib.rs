@@ -8,4 +8,5 @@
 extern crate alloc;
 
 pub mod encoding;
+pub mod polyfill;
 pub mod types;

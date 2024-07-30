@@ -2,6 +2,7 @@
 
 mod macros;
 
+pub use crate::ucs2_cstr;
 /// These need to be public for the `ucs2_cstr!` macro, but are not
 /// intended to be called directly.
 #[doc(hidden)]
