@@ -1,4 +1,4 @@
-use crate::{ucs2_from_utf8_at_offset, Error};
+use super::{ucs2_from_utf8_at_offset, Error};
 
 /// Count the number of UCS-2 characters in a string. Return an error if
 /// the string cannot be encoded in UCS-2.
