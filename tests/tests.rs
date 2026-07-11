@@ -12,7 +12,7 @@ fn encoding() {
     assert_eq!(encode(input, &mut buffer), Err(Error::BufferOverflow));
 
     let input = "😎";
-    assert_eq!(encode(input, &mut buffer), Err(Error::MultiByte));
+    assert_eq!(encode(input, &mut buffer), Err(Error::MultiByte('😎')));
 }
 
 #[test]

@@ -20,15 +20,20 @@ pub enum Error {
     /// Not enough space left in the output buffer.
     BufferOverflow,
     /// Input contained a character which cannot be represented in UCS-2.
-    MultiByte,
+    /// Indicates the first character that cannot be converted.
+    MultiByte(char),
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::BufferOverflow => f.write_str("output buffer is too small"),
-            Self::MultiByte => {
-                f.write_str("input contains a character which cannot be represented in UCS-2")
+            Self::MultiByte(c) => {
+                write!(
+                    f,
+                    "input contains the character {} which cannot be represented in UCS-2",
+                    c
+                )
             }
         }
     }
@@ -73,7 +78,7 @@ const unsafe fn ucs2_from_utf8_at_offset(bytes: &[u8], offset: usize) -> Result<
         ch_len = 2;
     } else if bytes[offset] & 0b1111_0000 == 0b1110_0000 {
         // 3 byte codepoint
-        if offset + 2 >= len || offset + 1 >= len {
+        if offset + 2 >= len {
             // safe: impossible utf-8 string.
             unsafe { core::hint::unreachable_unchecked() }
         }
@@ -84,7 +89,13 @@ const unsafe fn ucs2_from_utf8_at_offset(bytes: &[u8], offset: usize) -> Result<
         ch = a << 12 | b << 6 | c;
         ch_len = 3;
     } else if bytes[offset] & 0b1111_0000 == 0b1111_0000 {
-        return Err(Error::MultiByte); // UTF-16
+        // 4 byte codepoint
+        if offset + 3 >= len {
+            // safe: impossible utf-8 string.
+            unsafe { core::hint::unreachable_unchecked() }
+        }
+
+        return Err(Error::MultiByte(decode_four_bytes_real_utf8(bytes, offset))); // UTF-16
     } else {
         // safe: impossible utf-8 string.
         unsafe { core::hint::unreachable_unchecked() }
@@ -224,4 +235,21 @@ pub fn decode(input: &[u16], output: &mut [u8]) -> Result<usize> {
 
         Ok(())
     })
+}
+
+// The previous tests confirm that we are dealing with valid 4-byte UTF-8 here.
+const fn decode_four_bytes_real_utf8(bytes: &[u8], offset: usize) -> char {
+    let cp = ((byte_at(bytes, offset) & 0x07) as u32) << 18
+        | ((byte_at(bytes, offset + 1) & 0x3f) as u32) << 12
+        | (byte_at(bytes, offset + 2 & 0x3f) as u32) << 6
+        | (byte_at(bytes, offset + 3) & 0x3f) as u32;
+
+    match char::from_u32(cp) {
+        Some(c) => c,
+        None => unsafe { core::hint::unreachable_unchecked() }, // safe: impossible utf-8 string
+    }
+}
+
+const fn byte_at(bytes: &[u8], offset: usize) -> u8 {
+    unsafe { *bytes.as_ptr().add(offset) }
 }

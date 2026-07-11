@@ -115,7 +115,7 @@ mod tests {
         // Three-byte chars.
         assert_eq!(str_num_ucs2_chars("ვეპხის ტყაოსანი შოთა რუსთაველი"), Ok(30));
         // Four-byte chars.
-        assert_eq!(str_num_ucs2_chars("😎🔥"), Err(Error::MultiByte));
+        assert_eq!(str_num_ucs2_chars("😎🔥"), Err(Error::MultiByte('😎')));
     }
 
     #[test]
